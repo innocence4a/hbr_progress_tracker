@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heaven Burns Red Progress Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- パーティクル背景 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- ヘッダー -->
+    <header class="header">
+        <h1>HEAVEN BURNS RED<br><span style="font-size: 0.6em;">PROGRESS TRACKER</span></h1>
+    </header>
+
+    <!-- タブナビゲーション -->
+    <nav class="tab-container">
+        <div class="tab active" data-tab="dashboard">ダッシュボード</div>
+        <div class="tab" data-tab="main-story">メインストーリー</div>
+        <div class="tab" data-tab="events">イベント</div>
+        <div class="tab" data-tab="interactions">交流・メモリー</div>
+        <div class="tab" data-tab="styles">スタイル管理</div>
+        <div class="tab" data-tab="badges">称号バッジ</div>
+        <div class="tab" data-tab="battles">ライブ・バトル</div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+        <!-- ダッシュボード -->
+        <!-- 初期値は 0% / - 。script.js の updateProgress() が起動時に実データで上書きする -->
+        <div class="tab-content active" id="dashboard">
+            <div class="dashboard-grid">
+                <div class="progress-card">
+                    <h3>🏛️ メインストーリー</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>-</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>🎭 イベントストーリー</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>-</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>💫 スタイルコレクション</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>-</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>🏅 称号バッジ</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>-</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>💖 キャラクター交流</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>-</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>🎵 ライブモード</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>-</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 以下は script.js の generateContentFromData() が動的に生成する -->
+        <div class="tab-content" id="main-story">
+            <div class="checklist-section"></div>
+        </div>
+
+        <div class="tab-content" id="events"></div>
+
+        <div class="tab-content" id="interactions"></div>
+
+        <div class="tab-content" id="styles"></div>
+
+        <div class="tab-content" id="badges"></div>
+
+        <div class="tab-content" id="battles"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
