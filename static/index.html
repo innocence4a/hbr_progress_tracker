@@ -18,6 +18,8 @@
     <!-- タブナビゲーション -->
     <nav class="tab-container">
         <div class="tab active" data-tab="dashboard">ダッシュボード</div>
+        <div class="tab" data-tab="characters">キャラクター一覧</div>
+        <div class="tab" data-tab="style-catalog">スタイル図鑑</div>
         <div class="tab" data-tab="main-story">メインストーリー</div>
         <div class="tab" data-tab="events">イベント</div>
         <div class="tab" data-tab="interactions">交流・メモリー</div>
@@ -100,6 +102,45 @@
             </div>
         </div>
 
+        <!-- キャラクター一覧（data/characters.csv を元にAPI経由で取得。characters.js が描画する） -->
+        <div class="tab-content" id="characters">
+            <div class="char-toolbar">
+                <input type="text" id="char-search" class="char-search-input" placeholder="🔍 キャラ名で検索">
+                <select id="char-owned-filter" class="char-filter-select">
+                    <option value="all">すべて</option>
+                    <option value="complete">全スタイル所持</option>
+                    <option value="partial">一部所持</option>
+                    <option value="none">未所持</option>
+                </select>
+            </div>
+            <div class="char-summary" id="char-summary"></div>
+            <div class="character-grid" id="character-grid">
+                <p class="loading-message">読み込み中...</p>
+            </div>
+        </div>
+
+        <!-- スタイル図鑑（CSVの行=スタイル単位でカード表示。characters.js が描画する） -->
+        <div class="tab-content" id="style-catalog">
+            <div class="char-toolbar">
+                <input type="text" id="style-search" class="char-search-input" placeholder="🔍 キャラ名・スタイル名で検索">
+                <select id="style-rarity-filter" class="char-filter-select">
+                    <option value="all">すべてのレア度</option>
+                    <option value="SS">SS</option>
+                    <option value="S">S</option>
+                    <option value="A">A</option>
+                </select>
+                <select id="style-owned-filter" class="char-filter-select">
+                    <option value="all">すべて</option>
+                    <option value="owned">所持のみ</option>
+                    <option value="unowned">未所持のみ</option>
+                </select>
+            </div>
+            <div class="char-summary" id="style-summary"></div>
+            <div class="style-grid" id="style-grid">
+                <p class="loading-message">読み込み中...</p>
+            </div>
+        </div>
+
         <!-- 以下は script.js の generateContentFromData() が動的に生成する -->
         <div class="tab-content" id="main-story">
             <div class="checklist-section"></div>
@@ -117,5 +158,6 @@
     </main>
 
     <script src="script.js"></script>
+    <script src="characters.js"></script>
 </body>
 </html>

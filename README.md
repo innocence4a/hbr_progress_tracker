@@ -1,9 +1,11 @@
 # Heaven Burns Red Progress Tracker
 
 ヘブンバーンズレッドのやりこみ状況を管理する個人用トラッカー。
-Web版とReact Native版（Expo）の2構成があり、それぞれ独立して起動します。
+Web版（Python/FastAPIバックエンド + 静的フロント）とReact Native版（Expo）の
+2構成があり、それぞれ独立して起動します。
 
-> **注意**: 現在コードに入っているゲームデータはすべて架空のプレースホルダです。
+> **注意**: メインストーリー/イベント/称号バッジ等はまだ架空のプレースホルダです。
+> キャラクター一覧・スタイル図鑑のみ `data/characters.csv` の実データを使います。
 > 詳細は `CLAUDE.md` の「データの信頼性について」を参照してください。
 
 ---
@@ -11,54 +13,80 @@ Web版とReact Native版（Expo）の2構成があり、それぞれ独立して
 ## ファイル構成
 
 ```
-index.html    Web版のマークアップ
-styles.css    Web版のスタイル（アニメーション含む）
-script.js     Web版のロジック（データ定義・DOM生成・進捗計算）
-App.js        React Native版のコンポーネント（単体では動きません／後述）
-CLAUDE.md     プロジェクト仕様・既知の課題
-README.md     このファイル
+app/                    FastAPIバックエンド
+  main.py                 APIエンドポイント・静的ファイル/画像配信
+  csv_loader.py            data/characters.csv の読み込み（マスタデータ）
+  progress_store.py        所持/凸数の永続化（data/progress.json）
+data/
+  characters.csv          キャラクター/スタイルのマスタデータ（CSVをDB代わりに使用）
+  progress.json            所持/凸数の進捗（gitignore対象、実行時に自動生成）
+static/                 Web版フロントエンド
+  index.html               マークアップ
+  styles.css                スタイル（アニメーション含む）
+  script.js                  既存カテゴリ（メインストーリー等）のロジック
+  characters.js               キャラクター一覧・スタイル図鑑のロジック（API連携）
+images/                 キャラクター/スタイル画像を置く場所（.envで変更可、gitignore対象）
+App.js                  React Native版のコンポーネント（単体では動きません／後述）
+requirements.txt        Pythonの依存パッケージ
+.env.example            環境変数のテンプレート（IMAGES_DIR）
+CLAUDE.md               プロジェクト仕様・既知の課題
+README.md               このファイル
 ```
 
 ---
 
 ## Web版の起動
 
-### 方法1: ファイルを直接開く（最も簡単）
+キャラクター一覧・スタイル図鑑を含めて動かすには、Pythonバックエンド（FastAPI）の起動が必要です。
 
 ```bash
-open index.html
+# 1. 仮想環境を作成して依存パッケージをインストール
+python3 -m venv .venv
+source .venv/bin/activate   # Windowsは .venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. .env を用意する（画像フォルダのパスを指定）
+cp .env.example .env
+# 必要に応じて .env の IMAGES_DIR を編集
+
+# 3. サーバー起動
+uvicorn app.main:app --reload
 ```
 
-`index.html` / `styles.css` / `script.js` の3つが同じディレクトリにあれば、
-ブラウザで直接開くだけで動きます。ビルド不要、依存パッケージなし。
+ブラウザで `http://localhost:8000` を開きます（`index.html` 等の静的ファイルも
+このサーバーが配信します。ファイルを直接 `open` しても動きません＝APIが必要なため）。
 
-### 方法2: ローカルサーバー経由（推奨）
+### 画像を表示したい場合
 
-`file://` では将来的にモジュール化やfetchを入れたときに詰まるため、
-開発中はサーバー経由のほうが無難です。
+`IMAGES_DIR`（デフォルト `./images`）配下に、以下の命名規則で画像ファイルを置きます。
 
-```bash
-# Python
-python3 -m http.server 8000
-
-# または Node.js
-npx serve .
+```
+images/characters/<キャラ名（CV表記を除く）>.png   例: images/characters/水瀬いちご.png
+images/styles/<キャラ名>_<スタイル名>.png            例: images/styles/茅森月歌_Glorious Blades.png
 ```
 
-ブラウザで `http://localhost:8000` を開きます。
+画像が無い場合は自動的にプレースホルダー（頭文字アイコン）が表示されます。
+
+### キャラクター/スタイルデータを更新したい場合
+
+`data/characters.csv` を直接編集してください（Excel/スプレッドシートで開いてもOK）。
+列の意味は1行目のヘッダーの通りです。サーバーを再起動しなくても、次のAPIリクエスト時に
+最新のCSVが読み込まれます。所持/凸数の記録（`data/progress.json`）はCSVとは別ファイルなので、
+CSVを更新しても消えません。
 
 ### 動作確認のポイント
 
-1. タブ（ダッシュボード〜ライブ・バトル）を切り替えて画面が変わるか
-2. チェックリストの項目をクリックしてチェックが付くか
-3. ダッシュボードに戻ってプログレスバーが更新されているか
-4. DevTools のコンソールにエラーが出ていないか
+1. 「キャラクター一覧」「スタイル図鑑」タブでカードが表示されるか
+2. 所持チェック・凸数（●）をクリックして状態が変わり、リロードしても保持されているか
+3. 検索・絞り込みが効くか
+4. 既存のタブ（ダッシュボード〜ライブ・バトル）が引き続き動作するか
+5. DevTools のコンソールにエラーが出ていないか（画像未配置による404は想定内）
 
 ### 既知の制約
 
-- **リロードするとチェック状態がリセットされます**（永続化が未実装）
+- メインストーリー等の既存カテゴリは**リロードするとチェック状態がリセットされます**（未着手）
 - ネットワーク接続が必要です（Google Fonts を CDN から読み込むため）。
-  オフラインで使う場合は `styles.css` 冒頭の `@import` を削除してください。
+  オフラインで使う場合は `static/styles.css` 冒頭の `@import` を削除してください。
   フォントがシステムフォントにフォールバックしますが、機能には影響しません。
 
 ---
@@ -117,6 +145,10 @@ npx expo start
 
 ## 次のステップ
 
-データの永続化（クラウド保存）が未実装です。バックエンドは選定中で、
-Firebase / Supabase / Node.js + Express を候補として検討しています。
-想定スキーマは `CLAUDE.md` の「次のステップ: バックエンド接続」に記載しています。
+- キャラクター一覧・スタイル図鑑は Python(FastAPI) + `data/characters.csv` + `data/progress.json`
+  でローカル永続化されました。他のカテゴリ（メインストーリー等）は未着手のままです。
+- React Native版へのキャラクター一覧・スタイル図鑑の反映は未着手です。
+- クラウド保存（マルチデバイス同期）は未実装です。バックエンドは選定中で、
+  Firebase / Supabase を候補として検討しています。今回のローカルJSON(`data/progress.json`)は
+  将来的に `users/{uid}/progress/styles` のようなコレクションへ差し替える想定です。
+  想定スキーマは `CLAUDE.md` の「次のステップ: バックエンド接続」に記載しています。

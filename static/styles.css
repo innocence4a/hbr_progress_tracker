@@ -351,6 +351,322 @@ body {
     100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
 }
 
+/* ============================================================ */
+/* キャラクター一覧 / スタイル図鑑                                */
+/* ============================================================ */
+
+.char-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.char-search-input,
+.char-filter-select {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid #AD2155;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    color: #AD2155;
+    outline: none;
+}
+
+.char-search-input {
+    flex: 1 1 240px;
+}
+
+.char-search-input:focus,
+.char-filter-select:focus {
+    box-shadow: 0 0 10px rgba(173,33,85,0.4);
+}
+
+.char-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #AD2155;
+}
+
+.loading-message,
+.empty-message {
+    opacity: 0.7;
+    padding: 2rem;
+    text-align: center;
+    width: 100%;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    color: #fff;
+    background: linear-gradient(135deg, #AD2155 0%, #ff69b4 100%);
+}
+
+/* キャラクターカード */
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.character-card {
+    display: flex;
+    gap: 1rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,240,248,0.9) 100%);
+    border: 1px solid #AD2155;
+    border-radius: 18px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(173,33,85,0.1);
+}
+
+.character-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(173,33,85,0.3);
+}
+
+.character-card.fully-owned {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255,215,0,0.4);
+}
+
+.character-portrait {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #AD2155;
+}
+
+.character-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.character-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.character-info h4 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #AD2155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.character-progress-bar {
+    height: 8px;
+    margin: 0.4rem 0;
+}
+
+.character-stats {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 0.3rem 0 0.6rem;
+}
+
+.view-styles-btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: linear-gradient(135deg, rgba(173,33,85,0.1) 0%, rgba(255,105,180,0.2) 100%);
+    border: 1px solid #AD2155;
+    border-radius: 10px;
+    color: #AD2155;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-styles-btn:hover {
+    background: linear-gradient(135deg, #AD2155 0%, #ff69b4 100%);
+    color: #fff;
+}
+
+/* スタイル図鑑カード */
+.style-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.style-catalog-card {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+}
+
+.style-catalog-card.owned {
+    box-shadow: 0 0 15px rgba(173,33,85,0.4);
+}
+
+.style-portrait {
+    position: relative;
+    width: 100%;
+    height: 160px;
+}
+
+.style-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rarity-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+}
+
+.rarity-badge.rarity-ss { color: #ffd700; }
+.rarity-badge.rarity-s { color: #c0c0c0; }
+.rarity-badge.rarity-a { color: #cd7f32; }
+
+.style-info {
+    padding: 1rem;
+}
+
+.style-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.style-header h4 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.95rem;
+    color: #AD2155;
+}
+
+.style-character-name {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+.style-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag {
+    font-size: 0.75rem;
+    background: rgba(173,33,85,0.1);
+    border: 1px solid rgba(173,33,85,0.4);
+    border-radius: 8px;
+    padding: 0.15rem 0.5rem;
+}
+
+.tag-unison {
+    background: rgba(255,105,180,0.2);
+    border-color: #ff69b4;
+}
+
+.style-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    opacity: 0.75;
+    margin-bottom: 0.5rem;
+}
+
+.style-notes {
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.owned-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 0.6rem;
+}
+
+.owned-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #AD2155;
+    cursor: pointer;
+}
+
+.lb-stepper {
+    margin-bottom: 0.6rem;
+}
+
+.lb-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+.lb-dots {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.lb-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #AD2155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lb-dot:hover {
+    transform: scale(1.15);
+}
+
+.lb-dot.filled {
+    background: linear-gradient(45deg, #AD2155, #ff69b4);
+    box-shadow: 0 0 8px rgba(173,33,85,0.6);
+}
+
+.style-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.style-links a {
+    font-size: 0.75rem;
+    color: #AD2155;
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
     .header h1 {
@@ -374,5 +690,14 @@ body {
 
     .main-content {
         padding: 1rem;
+    }
+
+    .character-grid,
+    .style-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .char-toolbar {
+        flex-direction: column;
     }
 }

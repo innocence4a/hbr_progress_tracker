@@ -5,7 +5,8 @@
 ヘブンバーンズレッドのやりこみ状況を管理する個人用トラッカーアプリ。
 Web（デスクトップ・モバイルブラウザ）と React Native（ネイティブアプリ）の両方で動作させる。
 
-**現在のフェーズ**: プロトタイプ完成 → バックエンド接続とデータ整備が次のステップ
+**現在のフェーズ**: キャラクター一覧/スタイル図鑑を Python(FastAPI) + CSV + ローカルJSON で実装済み。
+他カテゴリ（メインストーリー等）は引き続きプレースホルダのまま → 同様の実データ化とクラウド永続化が次のステップ
 
 ---
 
@@ -100,11 +101,21 @@ Web（デスクトップ・モバイルブラウザ）と React Native（ネイ�
 ## 現在のファイル構成
 
 ```
-index.html    Web版マークアップ（タブnav + 空のtab-content枠）
-styles.css    全スタイル（アニメーション含む）
-script.js     gameData + 動的DOM生成 + 進捗計算
-App.js        React Native版（Expo, expo-linear-gradient 使用）
+app/main.py             FastAPIバックエンド（/api/characters, /api/styles, PATCH progress, 画像/静的配信）
+app/csv_loader.py        data/characters.csv 読み込み（キャラ/スタイルのマスタデータ）
+app/progress_store.py    所持/凸数の永続化（data/progress.json）
+data/characters.csv     キャラクター/スタイルのマスタデータ（CSVをDB代わりに使用、直接編集可）
+data/progress.json      所持/凸数（gitignore対象、実行時に自動生成）
+static/index.html       Web版マークアップ（タブnav + tab-content枠）
+static/styles.css       全スタイル（アニメーション含む）
+static/script.js        既存カテゴリ（メインストーリー等）: gameData + 動的DOM生成 + 進捗計算
+static/characters.js    キャラクター一覧・スタイル図鑑: API連携・所持/凸数の更新
+images/                 キャラ/スタイル画像（.envのIMAGES_DIRで変更可、gitignore対象）
+App.js                  React Native版（Expo, expo-linear-gradient 使用）。キャラ一覧機能は未反映
 ```
+
+キャラクター一覧・スタイル図鑑は `gameData` を使わず、CSVを唯一のマスタデータ源としてAPI経由で取得する
+（詳細は下記「キャラクター一覧・スタイル図鑑機能」を参照）。他カテゴリは従来通り `gameData` ベース。
 
 ### データ構造（`gameData`）
 
@@ -141,21 +152,40 @@ DOMContentLoaded
 - `ProgressBar` / `ChecklistItem` をコンポーネント分離済み
 - `Animated` API でプログレスバー幅とタップ時スケールをアニメーション
 
+### キャラクター一覧・スタイル図鑑機能
+
+- データフロー: `data/characters.csv`（マスタ） + `data/progress.json`（所持/凸数）→
+  `app/main.py` がマージして `/api/characters`（キャラ単位に集約）・`/api/styles`（CSV行単位）で返す →
+  `static/characters.js` が fetch して描画。
+- ID生成: スタイルIDは `md5(キャラ名（CV含む）+スタイル名+リリース日)` の先頭12文字（`app/csv_loader.py: make_style_id`）。
+  キャラIDはCV表記（`（CV ○○）`）を正規表現で除去したキャラ名そのもの（`strip_cv`）。
+- 所持/凸数はスタイル単位で管理（`owned: bool`, `limitBreak: 0〜5`）。`PATCH /api/styles/{id}/progress` で更新、
+  `owned=false` にすると凸数は自動的に0へ、`limitBreak>0` にすると自動的に `owned=true` になる。
+- 画像は `.env` の `IMAGES_DIR` 配下を `/images/` としてそのまま静的配信。命名規則:
+  `images/characters/<キャラ名（CV除く）>.png`、`images/styles/<キャラ名>_<スタイル名>.png`。
+  未配置時はフロント側 `onerror` でプレースホルダー（頭文字アイコン）に自動フォールバックする。
+- CSVを直接編集すれば新しいキャラ/スタイルを追加できる（サーバー再起動不要、リクエストの度に読み直す）。
+  `progress.json` は別ファイルなので、CSV更新で所持/凸数が消えることはない。
+
 ---
 
 ## 既知の課題
 
 ### 優先度: 高
 
-1. **データが永続化されない** — リロードで初期値に戻る。クラウド保存が未実装。
-2. **Web版の状態管理が DOM 依存** — チェック状態が `gameData` に反映されない。単一の状態ソースへ寄せる必要がある。
+1. **データが永続化されない**（キャラクター一覧・スタイル図鑑は解決済み） — `data/progress.json` に保存されるようになった。
+   ただしメインストーリー等の他カテゴリは依然リロードで初期値に戻る。クラウド保存（マルチデバイス同期）は未実装。
+2. **Web版の状態管理が DOM 依存**（他カテゴリのみ残存） — メインストーリー等はチェック状態が `gameData` に反映されない。
+   キャラクター一覧・スタイル図鑑はAPI（サーバー側の`progress.json`）を単一の状態ソースとして解決済み。
 3. **`gameData` が2箇所に重複** — script.js と App.js。共通モジュール（例: `data/gameData.js`）へ切り出す。
+   （キャラクター一覧・スタイル図鑑はCSV+APIに一本化したためこの問題の対象外）
 4. **ダッシュボードのカードマッピングが `nth-child` セレクタ依存** — カード順を変えると壊れる。`data-category` 属性等に変更すべき。
 
 ### 優先度: 中
 
-5. **ゲームデータがプレースホルダ** — 実データの投入が必要（冒頭の注意を参照）。
-6. **スタイル強化の管理粒度が粗い** — `lb`/`maxLb` のみ。レベル、リバージョン、スキルレベル（通常/EX）が未対応。
+5. **ゲームデータがプレースホルダ**（キャラクター一覧・スタイル図鑑は実データ化済み） — 他カテゴリは引き続き実データの投入が必要。
+6. **スタイル強化の管理粒度が粗い** — キャラクター一覧・スタイル図鑑では所持+凸数(0〜5)を導入したが、
+   レベル、リバージョン、スキルレベル（通常/EX）はまだ未対応。
 7. **交流・メモリーが1レコード1キャラ** — エピソード単位・記憶修復段階での管理になっていない。
 8. **称号バッジのランク管理** — `rank` / `maxRank` フィールドとして持たせるべき。
 
