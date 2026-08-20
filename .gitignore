@@ -1,0 +1,21 @@
+# 環境変数（画像フォルダのパス等、ローカル固有の設定）
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ユーザーの進捗データ（所持/凸数）。マスタデータ(CSV)とは分離し、個人データとしてgit管理外にする
+backend/data/progress.json
+
+# キャラクター/スタイル画像（著作権のある素材のため、ローカルにのみ配置しリポジトリには含めない）
+backend/images/
+
+# React Native (Expo) 版。node_modules等は frontend/mobile/.gitignore 側でも除外済み
+frontend/mobile/node_modules/
+frontend/mobile/.expo/
+
+# OS/エディタ
+.DS_Store
