@@ -15,6 +15,7 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -34,6 +35,15 @@ for sub_dir in (IMAGES_DIR / "characters", IMAGES_DIR / "styles"):
 MAX_LIMIT_BREAK = 5
 
 app = FastAPI(title="HBR Progress Tracker API")
+
+# ローカル専用の個人用ツールのため全オリジンを許可（RN版のExpo Webプレビュー等、
+# 別ポートから叩けるようにするため）。認証やインターネット公開は行わない前提。
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def _styles_with_progress():
