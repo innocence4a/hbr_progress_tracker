@@ -134,56 +134,39 @@ function renderCharacters(characters) {
 
 // ---------- スタイル図鑑 ----------
 
-function limitBreakStepperHtml(style) {
+function limitBreakDotsHtml(style) {
     let dots = '';
     for (let i = 1; i <= MAX_LIMIT_BREAK; i++) {
         const filled = i <= style.limitBreak ? 'filled' : '';
         dots += `<span class="lb-dot ${filled}" data-style-id="${style.id}" data-lb="${i}" title="限界突破 ${i}"></span>`;
     }
-    return `
-        <div class="lb-stepper">
-            <span class="lb-label">凸: ${style.limitBreak}/${MAX_LIMIT_BREAK}</span>
-            <div class="lb-dots">${dots}</div>
-        </div>
-    `;
+    return `<div class="lb-dots">${dots}</div>`;
 }
 
+// カードは「画像 + 情報（スタイル名・凸数・リリース日）」のみのシンプル構成。
+// 所持チェックは画像左上のバッジで、それ以外の詳細情報（属性・ロール・ガシャ名等）は
+// カードには出さない。
 function styleCardHtml(style) {
     const imgSrc = styleImageUrl(style.characterName, style.styleName);
     const rarityClass = 'rarity-' + (style.rarityRank || '').toLowerCase();
-    const attrs = [style.mainAttribute, style.subAttribute].filter(Boolean).join(' / ');
-    const links = style.referenceLinks.map((url) =>
-        `<a href="${url}" target="_blank" rel="noopener noreferrer">公式投稿を見る</a>`
-    ).join('');
 
     return `
         <div class="style-card style-catalog-card ${rarityClass} ${style.owned ? 'owned' : ''}" data-style-id="${style.id}">
             <div class="style-portrait">
                 <img src="${imgSrc}" alt="${style.styleName}" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'avatar-placeholder', textContent: '${style.characterName.charAt(0)}'}))">
                 ${style.rarityRank ? `<span class="rarity-badge ${rarityClass}">${style.rarityRank}</span>` : ''}
+                <label class="owned-badge" title="所持している">
+                    <input type="checkbox" class="owned-checkbox" data-style-id="${style.id}" ${style.owned ? 'checked' : ''}>
+                    <span class="owned-badge-mark">✓</span>
+                </label>
             </div>
             <div class="style-info">
-                <div class="style-header">
-                    <h4>${style.styleName}</h4>
-                    <span class="style-character-name">${style.characterName}</span>
+                <h4 class="style-name" title="${style.styleName}">${style.styleName}</h4>
+                <div class="style-quickmeta">
+                    <span class="style-release-date">${style.releaseDate || '-'}</span>
+                    <span class="style-lb-count">凸 ${style.limitBreak}/${MAX_LIMIT_BREAK}</span>
                 </div>
-                <div class="style-tags">
-                    ${style.role ? `<span class="tag">${style.role}</span>` : ''}
-                    ${attrs ? `<span class="tag">${attrs}</span>` : ''}
-                    ${style.unison ? '<span class="tag tag-unison">ユニゾン</span>' : ''}
-                    ${style.newOrRerun ? `<span class="tag">${style.newOrRerun}</span>` : ''}
-                </div>
-                <div class="style-meta">
-                    <span>${style.releaseDate || '-'}</span>
-                    ${style.gachaName ? `<span>${style.gachaName}</span>` : ''}
-                </div>
-                ${style.notes ? `<p class="style-notes">📝 ${style.notes}</p>` : ''}
-                <label class="owned-toggle">
-                    <input type="checkbox" class="owned-checkbox" data-style-id="${style.id}" ${style.owned ? 'checked' : ''}>
-                    <span>所持している</span>
-                </label>
-                ${limitBreakStepperHtml(style)}
-                ${links ? `<div class="style-links">${links}</div>` : ''}
+                ${limitBreakDotsHtml(style)}
             </div>
         </div>
     `;
