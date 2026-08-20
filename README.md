@@ -38,23 +38,50 @@ README.md               このファイル
 ## Web版の起動
 
 キャラクター一覧・スタイル図鑑を含めて動かすには、Pythonバックエンド（FastAPI）の起動が必要です。
+このプロジェクトはローカルのPython環境のみで完結させる方針とし、仮想環境・依存インストールには
+[uv](https://docs.astral.sh/uv/) を使います（`pyproject.toml` / `uv.lock` は使わず、
+依存管理は従来どおり `requirements.txt` で行います）。事前に `uv` がインストール済みであることが前提です
+（未導入の場合は公式ドキュメントの手順に従ってください）。
 
 ```bash
-# 1. 仮想環境を作成して依存パッケージをインストール
-python3 -m venv .venv
-source .venv/bin/activate   # Windowsは .venv\Scripts\activate
-pip install -r requirements.txt
+# 1. 仮想環境を作成する（.venv/ を作成。指定したPythonが無ければuvが自動取得する）
+uv venv --python 3.13
 
-# 2. .env を用意する（画像フォルダのパスを指定）
+# 2. 有効化
+source .venv/bin/activate   # Windowsは .venv\Scripts\activate
+
+# 3. 依存パッケージをインストール
+uv pip install -r requirements.txt
+
+# 4. .env を用意する（画像フォルダのパスを指定）
 cp .env.example .env
 # 必要に応じて .env の IMAGES_DIR を編集
 
-# 3. サーバー起動
+# 5. サーバー起動
 uvicorn app.main:app --reload
 ```
 
 ブラウザで `http://localhost:8000` を開きます（`index.html` 等の静的ファイルも
 このサーバーが配信します。ファイルを直接 `open` しても動きません＝APIが必要なため）。
+
+抜けるときは `deactivate`。次回以降は `source .venv/bin/activate` → `uvicorn app.main:app --reload`
+だけで再開できます（`.venv/` は `.gitignore` 対象なので、cloneし直した場合は手順1からやり直してください）。
+
+### 依存パッケージを追加したいとき
+
+```bash
+# 1. 有効化した状態でインストール
+uv pip install <パッケージ名>
+
+# 2. 入ったバージョンを確認
+uv pip show <パッケージ名> | grep Version
+
+# 3. requirements.txt の末尾に手で追記する（例）
+#    <パッケージ名>==<確認したバージョン>
+```
+
+環境を `requirements.txt` に完全一致させたい場合（削除も反映したい場合）は
+`uv pip install -r requirements.txt` の代わりに `uv pip sync requirements.txt` を使います。
 
 ### 画像を表示したい場合
 
