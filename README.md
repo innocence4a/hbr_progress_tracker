@@ -2,33 +2,40 @@
 
 ヘブンバーンズレッドのやりこみ状況を管理する個人用トラッカー。
 Web版（Python/FastAPIバックエンド + 静的フロント）とReact Native版（Expo）の
-2構成があり、それぞれ独立して起動します。
+2構成があり、それぞれ独立して起動します。**すべてこのリポジトリの中だけで完結します**
+（外部に別プロジェクトを作る必要はありません）。
 
 > **注意**: メインストーリー/イベント/称号バッジ等はまだ架空のプレースホルダです。
-> キャラクター一覧・スタイル図鑑のみ `data/characters.csv` の実データを使います。
+> キャラクター一覧・スタイル図鑑のみ `backend/data/characters.csv` の実データを使います。
 > 詳細は `CLAUDE.md` の「データの信頼性について」を参照してください。
 
 ---
 
 ## ファイル構成
 
+バックエンド（Python/FastAPI）とフロントエンド（Web版・RN版）をリポジトリ内で分けています。
+
 ```
-app/                    FastAPIバックエンド
-  main.py                 APIエンドポイント・静的ファイル/画像配信
-  csv_loader.py            data/characters.csv の読み込み（マスタデータ）
-  progress_store.py        所持/凸数の永続化（data/progress.json）
-data/
-  characters.csv          キャラクター/スタイルのマスタデータ（CSVをDB代わりに使用）
-  progress.json            所持/凸数の進捗（gitignore対象、実行時に自動生成）
-static/                 Web版フロントエンド
-  index.html               マークアップ
-  styles.css                スタイル（アニメーション含む）
-  script.js                  既存カテゴリ（メインストーリー等）のロジック
-  characters.js               キャラクター一覧・スタイル図鑑のロジック（API連携）
-images/                 キャラクター/スタイル画像を置く場所（.envで変更可、gitignore対象）
-App.js                  React Native版のコンポーネント（単体では動きません／後述）
-requirements.txt        Pythonの依存パッケージ
-.env.example            環境変数のテンプレート（IMAGES_DIR）
+backend/                 Python/FastAPI バックエンド
+  app/
+    main.py                 APIエンドポイント・静的ファイル/画像配信
+    csv_loader.py            data/characters.csv の読み込み（マスタデータ）
+    progress_store.py        所持/凸数の永続化（data/progress.json）
+  data/
+    characters.csv          キャラクター/スタイルのマスタデータ（CSVをDB代わりに使用）
+    progress.json            所持/凸数の進捗（gitignore対象、実行時に自動生成）
+  images/                  キャラクター/スタイル画像を置く場所（.envで変更可、gitignore対象）
+  requirements.txt        Pythonの依存パッケージ
+  .env.example             環境変数のテンプレート（IMAGES_DIR）
+
+frontend/
+  web/                    Web版フロントエンド（backendのFastAPIが配信する）
+    index.html               マークアップ
+    styles.css                スタイル（アニメーション含む）
+    script.js                  既存カテゴリ（メインストーリー等）のロジック
+    characters.js               キャラクター一覧・スタイル図鑑のロジック（API連携）
+  mobile/                 React Native版（Expo）。単体のExpoプロジェクトとして完結
+
 CLAUDE.md               プロジェクト仕様・既知の課題
 README.md               このファイル
 ```
@@ -38,13 +45,16 @@ README.md               このファイル
 ## Web版の起動
 
 キャラクター一覧・スタイル図鑑を含めて動かすには、Pythonバックエンド（FastAPI）の起動が必要です。
-このプロジェクトはローカルのPython環境のみで完結させる方針とし、仮想環境・依存インストールには
-[uv](https://docs.astral.sh/uv/) を使います（`pyproject.toml` / `uv.lock` は使わず、
-依存管理は従来どおり `requirements.txt` で行います）。事前に `uv` がインストール済みであることが前提です
-（未導入の場合は公式ドキュメントの手順に従ってください）。
+仮想環境・依存インストールには [uv](https://docs.astral.sh/uv/) を使います
+（`pyproject.toml` / `uv.lock` は使わず、依存管理は `requirements.txt` で行う方針）。
+事前に `uv` がインストール済みであることが前提です（未導入の場合は公式ドキュメントの手順に従ってください）。
+
+**コマンドはすべて `backend/` ディレクトリの中で実行します。**
 
 ```bash
-# 1. 仮想環境を作成する（.venv/ を作成。指定したPythonが無ければuvが自動取得する）
+cd backend
+
+# 1. 仮想環境を作成する（backend/.venv/ を作成。指定したPythonが無ければuvが自動取得する）
 uv venv --python 3.13
 
 # 2. 有効化
@@ -61,23 +71,21 @@ cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
-ブラウザで `http://localhost:8000` を開きます（`index.html` 等の静的ファイルも
-このサーバーが配信します。ファイルを直接 `open` しても動きません＝APIが必要なため）。
+ブラウザで `http://localhost:8000` を開きます。`frontend/web/` の静的ファイル（index.html等）は
+`backend/app/main.py` がまとめて配信するので、`frontend/web/index.html` を直接 `open` しても動きません
+（APIサーバーが必要なため）。
 
-抜けるときは `deactivate`。次回以降は `source .venv/bin/activate` → `uvicorn app.main:app --reload`
-だけで再開できます（`.venv/` は `.gitignore` 対象なので、cloneし直した場合は手順1からやり直してください）。
+抜けるときは `deactivate`。次回以降は `cd backend` → `source .venv/bin/activate` →
+`uvicorn app.main:app --reload` だけで再開できます
+（`backend/.venv/` は `.gitignore` 対象なので、cloneし直した場合は手順1からやり直してください）。
 
 ### 依存パッケージを追加したいとき
 
 ```bash
-# 1. 有効化した状態でインストール
+# backend/ で、有効化した状態で実行
 uv pip install <パッケージ名>
-
-# 2. 入ったバージョンを確認
 uv pip show <パッケージ名> | grep Version
-
-# 3. requirements.txt の末尾に手で追記する（例）
-#    <パッケージ名>==<確認したバージョン>
+# requirements.txt の末尾に手で追記する（例: <パッケージ名>==<確認したバージョン>）
 ```
 
 環境を `requirements.txt` に完全一致させたい場合（削除も反映したい場合）は
@@ -85,7 +93,8 @@ uv pip show <パッケージ名> | grep Version
 
 ### 画像を表示したい場合
 
-`IMAGES_DIR`（デフォルト `./images`）配下に、以下の命名規則で画像ファイルを置きます。
+`backend/.env` の `IMAGES_DIR`（デフォルト `./images` = `backend/images/`）配下に、
+以下の命名規則で画像ファイルを置きます。
 
 ```
 images/characters/<キャラ名（CV表記を除く）>.png   例: images/characters/水瀬いちご.png
@@ -96,9 +105,9 @@ images/styles/<キャラ名>_<スタイル名>.png            例: images/styles
 
 ### キャラクター/スタイルデータを更新したい場合
 
-`data/characters.csv` を直接編集してください（Excel/スプレッドシートで開いてもOK）。
+`backend/data/characters.csv` を直接編集してください（Excel/スプレッドシートで開いてもOK）。
 列の意味は1行目のヘッダーの通りです。サーバーを再起動しなくても、次のAPIリクエスト時に
-最新のCSVが読み込まれます。所持/凸数の記録（`data/progress.json`）はCSVとは別ファイルなので、
+最新のCSVが読み込まれます。所持/凸数の記録（`backend/data/progress.json`）はCSVとは別ファイルなので、
 CSVを更新しても消えません。
 
 ### 動作確認のポイント
@@ -113,15 +122,15 @@ CSVを更新しても消えません。
 
 - メインストーリー等の既存カテゴリは**リロードするとチェック状態がリセットされます**（未着手）
 - ネットワーク接続が必要です（Google Fonts を CDN から読み込むため）。
-  オフラインで使う場合は `static/styles.css` 冒頭の `@import` を削除してください。
+  オフラインで使う場合は `frontend/web/styles.css` 冒頭の `@import` を削除してください。
   フォントがシステムフォントにフォールバックしますが、機能には影響しません。
 
 ---
 
 ## React Native版の起動
 
-`App.js` は単体では動きません。**このリポジトリとは別の場所に**Expoプロジェクトを新規作成し、
-その中に `App.js` をコピーして使います。
+`frontend/mobile/` は最初から `npx create-expo-app` でスキャフォールドされた、単体で動く
+Expoプロジェクトです。**このリポジトリの外に別プロジェクトを作る必要はありません。**
 
 ### 前提
 
@@ -134,19 +143,12 @@ CSVを更新しても消えません。
 ### 手順
 
 ```bash
-# 1. リポジトリの外（例: 1つ上の階層）にExpoプロジェクトを新規作成
-cd ..
-npx create-expo-app@latest hbr-tracker
-cd hbr-tracker   # ← 以降のコマンドは必ずこの新しいプロジェクトフォルダの中で実行する
+cd frontend/mobile
 
-# 2. 依存パッケージを追加
-npx expo install expo-linear-gradient
+# 1. 依存パッケージをインストール（node_modules/ は .gitignore 対象）
+npm install
 
-# 3. 生成された App.js を、このリポジトリの App.js の中身で置き換える
-#    （テンプレートによっては app/ 配下の構成になっている場合があります。
-#     その場合は下記「ルーティング構成の場合」を参照）
-
-# 4. 起動
+# 2. 起動
 npx expo start
 ```
 
@@ -159,20 +161,11 @@ npx expo start
   → 古いグローバル `expo-cli` が実行されています。`npx expo start` のように必ず `npx expo` の形で実行してください
   （`expo start` のようにグローバルコマンドで実行しない）。上記「前提」の手順で `expo-cli` をアンインストールするのが確実です。
 - **`No managed or bare projects found. Please make sure you are inside a project folder.` と出る**
-  → 手順1でExpoプロジェクトを作成した**そのフォルダの中**（`cd hbr-tracker` した後）でコマンドを実行しているか確認してください。
-  このリポジトリのルートや、それ以外のフォルダで `expo`/`npx expo` を実行しても動きません。
+  → `frontend/mobile` の中（`package.json` がある場所）でコマンドを実行しているか確認してください。
+  リポジトリのルートや `backend/` で `expo`/`npx expo` を実行しても動きません。
 - **Node.jsのバージョン非対応の警告が出る**
   → 一旦は無視して動作するか確認してOKです。動かない場合は Node.js の LTS版（`nvm install --lts` 等）に切り替えてから
   やり直してください。
-
-### ルーティング構成の場合
-
-`create-expo-app` の最近のテンプレートは expo-router 構成（`app/` ディレクトリ）
-で生成されることがあります。その場合は以下のいずれかで対応します。
-
-- `app/index.tsx` の中身を `App.js` の内容に置き換える
-  （`export default function App()` を `export default function Index()` にリネーム）
-- またはテンプレート選択時に blank テンプレートを選ぶ
 
 ### 動作確認のポイント
 
@@ -184,15 +177,16 @@ npx expo start
 
 - Web版と同様、**アプリを再起動するとチェック状態がリセットされます**
 - `gameData` が Web版と重複定義されています（`CLAUDE.md` の課題3参照）
+- キャラクター一覧・スタイル図鑑（Web版で追加した機能）はまだRN版に反映されていません
 
 ---
 
 ## 次のステップ
 
-- キャラクター一覧・スタイル図鑑は Python(FastAPI) + `data/characters.csv` + `data/progress.json`
-  でローカル永続化されました。他のカテゴリ（メインストーリー等）は未着手のままです。
+- キャラクター一覧・スタイル図鑑は Python(FastAPI) + `backend/data/characters.csv` +
+  `backend/data/progress.json` でローカル永続化されました。他のカテゴリ（メインストーリー等）は未着手のままです。
 - React Native版へのキャラクター一覧・スタイル図鑑の反映は未着手です。
 - クラウド保存（マルチデバイス同期）は未実装です。バックエンドは選定中で、
-  Firebase / Supabase を候補として検討しています。今回のローカルJSON(`data/progress.json`)は
+  Firebase / Supabase を候補として検討しています。今回のローカルJSON(`backend/data/progress.json`)は
   将来的に `users/{uid}/progress/styles` のようなコレクションへ差し替える想定です。
   想定スキーマは `CLAUDE.md` の「次のステップ: バックエンド接続」に記載しています。

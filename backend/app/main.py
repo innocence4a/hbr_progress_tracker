@@ -3,7 +3,10 @@
 - data/characters.csv をマスタデータ(DB代わり)として読み込みAPIで返す
 - 所持/凸数の進捗は data/progress.json に保存する
 - IMAGES_DIR(.env)配下の画像を /images/ 以下で静的配信する
-- static/ 配下のフロントエンド(index.html等)もこのサーバーから配信する
+- ../frontend/web 配下のフロントエンド(index.html等)もこのサーバーから配信する
+
+このファイルは backend/app/main.py に配置される想定（`cd backend && uvicorn app.main:app`）。
+リポジトリ構成: backend/（このAPI） + frontend/web（Web版フロント） + frontend/mobile（RN版）。
 """
 
 import os
@@ -20,8 +23,9 @@ from app.progress_store import get_style_progress, load_progress, update_style_p
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_DIR = BASE_DIR / "static"
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
+REPO_ROOT = BASE_DIR.parent
+STATIC_DIR = REPO_ROOT / "frontend" / "web"
 IMAGES_DIR = Path(os.getenv("IMAGES_DIR", BASE_DIR / "images")).expanduser().resolve()
 
 for sub_dir in (IMAGES_DIR / "characters", IMAGES_DIR / "styles"):
@@ -106,6 +110,6 @@ def patch_style_progress(style_id: str, update: ProgressUpdate):
 # 画像フォルダ(.envのIMAGES_DIR)を /images/ で配信
 app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
 
-# フロントエンド一式(index.html等)を配信。APIルートより後にマウントすることで
+# frontend/web 一式(index.html等)を配信。APIルートより後にマウントすることで
 # /api/* を優先的にマッチさせる。
 app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
