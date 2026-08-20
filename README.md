@@ -120,24 +120,29 @@ CSVを更新しても消えません。
 
 ## React Native版の起動
 
-`App.js` は単体では動きません。Expoプロジェクトを作成し、その中に配置します。
+`App.js` は単体では動きません。**このリポジトリとは別の場所に**Expoプロジェクトを新規作成し、
+その中に `App.js` をコピーして使います。
 
 ### 前提
 
-- Node.js（LTS推奨）
+- Node.js（LTS推奨。バージョンが新しすぎる/古すぎるとExpo CLIの警告が出ることがあります）
 - iOS/Androidの実機、またはシミュレータ
+- **グローバルインストールした `expo-cli` は使いません**（2023年以降廃止・非推奨。
+  `npm ls -g --depth=0` で `expo-cli` が出てくる場合は `npm uninstall -g expo-cli` で削除しておくと事故りません）
+- 以降のコマンドはすべて `npx expo ...` の形（プロジェクトごとのローカルCLIを都度取得して実行）で統一します
 
 ### 手順
 
 ```bash
-# 1. Expoプロジェクトを新規作成
+# 1. リポジトリの外（例: 1つ上の階層）にExpoプロジェクトを新規作成
+cd ..
 npx create-expo-app@latest hbr-tracker
-cd hbr-tracker
+cd hbr-tracker   # ← 以降のコマンドは必ずこの新しいプロジェクトフォルダの中で実行する
 
 # 2. 依存パッケージを追加
 npx expo install expo-linear-gradient
 
-# 3. 生成された App.js を、このリポジトリの App.js で置き換える
+# 3. 生成された App.js を、このリポジトリの App.js の中身で置き換える
 #    （テンプレートによっては app/ 配下の構成になっている場合があります。
 #     その場合は下記「ルーティング構成の場合」を参照）
 
@@ -147,6 +152,18 @@ npx expo start
 
 起動後、ターミナルに表示されるQRコードを Expo Go アプリで読み取るか、
 `i`（iOSシミュレータ）/ `a`（Androidエミュレータ）/ `w`（Web）を押します。
+
+### うまくいかない場合
+
+- **`This version of expo-cli is not supported anymore` / `You can create a new project with expo init` と出る**
+  → 古いグローバル `expo-cli` が実行されています。`npx expo start` のように必ず `npx expo` の形で実行してください
+  （`expo start` のようにグローバルコマンドで実行しない）。上記「前提」の手順で `expo-cli` をアンインストールするのが確実です。
+- **`No managed or bare projects found. Please make sure you are inside a project folder.` と出る**
+  → 手順1でExpoプロジェクトを作成した**そのフォルダの中**（`cd hbr-tracker` した後）でコマンドを実行しているか確認してください。
+  このリポジトリのルートや、それ以外のフォルダで `expo`/`npx expo` を実行しても動きません。
+- **Node.jsのバージョン非対応の警告が出る**
+  → 一旦は無視して動作するか確認してOKです。動かない場合は Node.js の LTS版（`nvm install --lts` 等）に切り替えてから
+  やり直してください。
 
 ### ルーティング構成の場合
 
